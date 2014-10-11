@@ -32,6 +32,8 @@ class player():
                     self.steps.append(i)
             except:
                 break
+            
+        self.file.close()
 
         #Create visual representations
         for i in self.steps[0]:

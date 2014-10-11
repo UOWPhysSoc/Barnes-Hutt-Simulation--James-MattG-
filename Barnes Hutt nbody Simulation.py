@@ -20,16 +20,16 @@ import time
 class BarnesHut():
 #Barnes Hutt Class containing all sim information and algorithms
     
-    def __init__(self,num,posdist,veldist,dt,timelim,filename):
+    def __init__(self,dist,dt,timelim,filename):
     #Initialization function handling distribution and simulation settings
         
         #Sim settings
-        self.num = num                   
+        self.dist = dist
+        self.bodies = self.dist.call()
+        self.n = self.dist.n
         self.timelim = timelim
-        self.posdist = posdist
-        self.veldist = veldist
         self.dt = dt
-        self.file = open(filename+'.barnes','wb')
+        self.filename = filename
         
         #Constants and global values
         self.time = 0
@@ -47,28 +47,25 @@ class BarnesHut():
         self.t = None       #Tree will be calculated later
         
         #Initial data generation
-        self.gen()
+        #self.gen()
         self.verletfirst()
         self.detrange()    
         self.t = self.tree(10+self.R,self.bodies)
 
     def gen(self):
+        pass
     #Generation function using the external distributions
-        
-        #Generate bodies using a distribution stored in 'barnesdist.py' ring() is used here
-        for i in range(0,self.num):
-            self.bodies.append(ring(i,self.posdist,self.veldist,1000000))
 
         #Determine the initial net momentum, total mass and centre of mass
-        for i in self.bodies:
-            self.P += i['mass']*i['vel']
-            self.M += i['mass']
-            self.COM = (self.COM*self.M + i['mass']*i['pos-1'])/(self.M + i['mass'])
-
-        #Normalize velocity using the net momentum and total mass so that there is no net movement and centre sim at the COM
-        for i in self.bodies:
-            i['vel'] -= self.P/self.M
-            i['pos-1'] -= self.COM
+##        for i in self.bodies:
+##            self.P += i['mass']*i['vel']
+##            self.M += i['mass']
+##            self.COM = (self.COM*self.M + i['mass']*i['pos-1'])/(self.M + i['mass'])
+##
+##        #Normalize velocity using the net momentum and total mass so that there is no net movement and centre sim at the COM
+##        for i in self.bodies:
+##            i['vel'] -= self.P/self.M
+##            i['pos-1'] -= self.COM
 
     def verletfirst(self):
     #The zeroth step for Verlet numerical integration
@@ -157,7 +154,8 @@ class BarnesHut():
         #If sim finishes or output bus reaches et size, write bus to file and clear bus
         if len(self.outputbus) < 1000 and ty == 'norm':
             pass
-        if len(self.outputbus) >= 1000 or ty == 'fin':
+        if ty == 'fin':
+            self.file = open(self.filename+'.barnes','wb')
             pickle.dump(self.outputbus,self.file)
             self.outputbus = []
             if ty == 'fin':
@@ -296,15 +294,16 @@ class node():
 if __name__ == '__main__':
 
     #Inputs
-    ofn = input('Output file name: ')
-    nop = int(input('Number of bodies: '))
-    pdi = int(input('Position distribution: '))
-    vdi = int(input('Velocity distribution: '))
+    ofn = str(input('Output file name: '))
     dti = float(input('dt value: '))
     sml = int(input('Sim length: '))
 
+    dist_name = str(input('Distribution to use: '))
+    dist_name = dist_name.split(',')
+    dist = distributions(dist_name)
+
     #Define Sim and run
-    b = BarnesHut(nop,pdi,vdi,dti,sml,ofn)
+    b = BarnesHut(dist,dti,sml,ofn)
     while True:
         if b.quit == True:
             break
