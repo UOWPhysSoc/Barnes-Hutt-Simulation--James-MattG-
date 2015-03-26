@@ -24,6 +24,7 @@ class BarnesHut():
     #Initialization function handling distribution and simulation settings
         
         #Sim settings
+        self.bodies = []
         self.dist = dist
         self.bodies = self.dist.call()
         self.n = self.dist.n
@@ -42,7 +43,6 @@ class BarnesHut():
         self.quit = False
         
         #Data Structures prior to initial data generation
-        self.bodies = []
         self.outputbus = []
         self.t = None       #Tree will be calculated later
         
@@ -143,20 +143,21 @@ class BarnesHut():
 
         #create clean temp step bus
         tempbus = []
-
+        #print(self.bodies)
         #Write cartesian coords and mass to step bus 
         for i in self.bodies:
             tempbus.append([float(i['pos-1'].x),float(i['pos-1'].y),float(i['pos-1'].z),float(i['mass'])*self.M])
-
+        
         #Write step bus to output bus
-        self.outputbus.append(tempbus)
+        self.outputbus.append(list(tempbus))
 
         #If sim finishes or output bus reaches et size, write bus to file and clear bus
         if len(self.outputbus) < 1000 and ty == 'norm':
             pass
-        if ty == 'fin':
+        else:
             self.file = open(self.filename+'.barnes','wb')
             pickle.dump(self.outputbus,self.file)
+            #print(self.outputbus)
             self.outputbus = []
             if ty == 'fin':
                 self.file.close()
@@ -296,7 +297,7 @@ if __name__ == '__main__':
     #Inputs
     ofn = str(input('Output file name: '))
     dti = float(input('dt value: '))
-    sml = int(input('Sim length: '))
+    sml = float(input('Sim length: '))
 
     dist_name = str(input('Distribution to use: '))
     dist_name = dist_name.split(',')
@@ -304,6 +305,7 @@ if __name__ == '__main__':
 
     #Define Sim and run
     b = BarnesHut(dist,dti,sml,ofn)
+    #print(b.n)
     while True:
         if b.quit == True:
             break
@@ -311,5 +313,5 @@ if __name__ == '__main__':
 
     #Play sim
     plyr = barnesplayer.player(ofn)
-    pbr = int(input('Playback rate: '))
-    plyr.play(pbr)
+ #   pbr = int(input('Playback rate: '))
+    plyr.play()

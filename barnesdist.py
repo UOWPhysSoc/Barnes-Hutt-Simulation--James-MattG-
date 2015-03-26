@@ -9,6 +9,7 @@ Avaliable for use under a GPL v3 licence.
 #Import dependent libraries
 from random import *
 from visual import *
+from math import *
 
 class distributions():
 
@@ -16,6 +17,7 @@ class distributions():
         self.dist_name = dist_name
         self.part = []
         self.n = 0
+        self.index = 0
 
     def call(self):
         for i in self.dist_name:
@@ -38,11 +40,12 @@ class distributions():
                 'mass':1/self.n,
                 'vel':random_vect(x_range*0.1,y_range*0.1,z_range*0.1),
                 'acc':vector(0,0,0),
-                'num':i
+                'num':self.index
                 })
+            self.index += 1
 
 
-    def ring(index,posd,veld,centralmass):
+    def ring_old(index,posd,veld,centralmass):
 #Ring type distribution around a massive central body
 
         n = int(input('Number of bodies: '))
@@ -77,6 +80,37 @@ class distributions():
                     'acc':vector(0,0,0),
                     'num':index
                     })
+
+    def kepler(self):
+        n_new = int(input('Number of bodies: '))
+        self.n += n_new
+        cent_mass = float(input('Central body mass: '))
+        other_mass = float(input('Other masses: '))
+        mean_r = float(input('Mean radius: '))
+        self.part.append({
+                'pos-1':vector(0,0,0),
+                'pos':vector(0,0,0),
+                'mass':cent_mass,
+                'vel':vector(0,0,0),
+                'acc':vector(0,0,0),
+                'num':self.index
+                })
+        self.index += 1
+        for i in range(0,n_new - 1):
+            r = vector(1,0,0) * expovariate(1./mean_r)
+            r = rotate(r, uniform(0, 2*pi), vector(0,0,1))
+            self.part.append({
+                'pos-1':r,
+                'pos':r,
+                'mass':other_mass,
+                'vel':cross(r,vector(0,0,1))*sqrt(1*(cent_mass + n_new*other_mass)*(1-exp(-mag(r)/mean_r))),
+                'acc':vector(0,0,0),
+                'num':self.index
+                })
+            self.index += 1
+        
+
+        
 
 def random_vect(dx, dy, dz):
     return vector(uniform(-dx/2, dx/2),uniform(-dy/2,dy/2),uniform(-dz/2,dz/2))
