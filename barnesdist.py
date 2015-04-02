@@ -21,7 +21,10 @@ class distributions():
 
     def call(self):
         for i in self.dist_name:
-            getattr(self, i)()
+            try:
+                getattr(self, i)()
+            except:
+                true
         return self.part
 
     def uniform_cube(self):
@@ -108,6 +111,31 @@ class distributions():
                 'num':self.index
                 })
             self.index += 1
+
+    def two_body(self):
+        self.n += 2
+        mass1 = float(input('First body mass: '))
+        mass2 = float(input('Second body mass: '))
+        r = vector(1,0,0)*float(input('Separation distance: '))
+        mu = mass1 * mass2 /(mass1 + mass2)
+        self.part.append({
+            'pos-1':vector(0,0,0),
+            'pos':vector(0,0,0),
+            'mass':mass1,
+            'vel':sqrt(mass2**2/(mag(r)*(mass1 + mass2))) * vector(0,1,0),
+            'acc':vector(0,0,0),
+            'num':self.index
+            })
+        self.index += 1
+        self.part.append({
+            'pos-1':r,
+            'pos':r,
+            'mass':mass2,
+            'vel':sqrt(mass1**2/(mag(r)*(mass1 + mass2))) * vector(0,-1,0),
+            'acc':vector(0,0,0),
+            'num':self.index
+            })
+        self.index += 1
         
 
         

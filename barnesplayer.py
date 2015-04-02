@@ -37,7 +37,7 @@ class player():
 
         #Create visual representations
         for i in self.steps[0]:
-            self.particles.append(sphere(pos = (i[0],i[1],i[2]),radius = 1))#radius = 100*math.log(i[3]+1)))
+            self.particles.append(sphere(pos = (i[0],i[1],i[2]),radius = 10*pow(i[3],1/3)))#
         self.scene.autoscale = True
         
     def play(self):

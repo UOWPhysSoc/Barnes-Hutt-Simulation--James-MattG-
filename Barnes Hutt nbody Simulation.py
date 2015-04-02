@@ -35,7 +35,7 @@ class BarnesHut():
         #Constants and global values
         self.time = 0
         self.P = vector(0,0,0)
-        self.M = 0
+        self.M = 1
         self.COM = vector(0,0,0)
         self.G = 1
         self.epsilon = 0.1
