@@ -143,3 +143,6 @@ class distributions():
 def random_vect(dx, dy, dz):
     return vector(uniform(-dx/2, dx/2),uniform(-dy/2,dy/2),uniform(-dz/2,dz/2))
                 
+
+
+#james rules 
