@@ -31,6 +31,8 @@ class BarnesHut():
         self.timelim = timelim
         self.dt = dt
         self.filename = filename
+        self.outputsize = (10.0/72.5)*1E5/(self.n)
+        self.file_no = 1
         
         #Constants and global values
         self.time = 0
@@ -142,37 +144,35 @@ class BarnesHut():
     #Write data to pickled file, for later use
 
         #create clean temp step bus
-        tempbus = []
+        stepbus = []
         #print(self.bodies)
         #Write cartesian coords and mass to step bus 
         for i in self.bodies:
-            tempbus.append([float(i['pos-1'].x),float(i['pos-1'].y),float(i['pos-1'].z),float(i['mass'])*self.M])
+            stepbus.append([float(i['pos-1'].x),float(i['pos-1'].y),float(i['pos-1'].z),float(i['mass'])*self.M])
         
         #Write step bus to output bus
-        self.outputbus.append(list(tempbus))
+        self.outputbus.append(list(stepbus))
 
         #If sim finishes or output bus reaches et size, write bus to file and clear bus
-        if len(self.outputbus) < 1000 and ty == 'norm':
-            pass
-        else:
-            self.file = open(self.filename+'.barnes','wb')
+        if len(self.outputbus) == self.outputsize or ty == 'fin':
+            self.file = open(self.filename + str(self.file_no) + '.barnes','wb')
             pickle.dump(self.outputbus,self.file)
             #print(self.outputbus)
             self.outputbus = []
-            if ty == 'fin':
-                self.file.close()
-                print('Complete')
+            self.file.close()
+            self.file_no += 1
 
     def step(self):
     #Step function to handle all function calling each step
 
-        #Write data
-        self.write()
 
         #Check sim length
         if self.time > self.timelim:
             self.write('fin')
             self.quit = True
+
+        else:
+            self.write()
             
         #Determine sim range and dynamically construct tree
         self.detrange()
@@ -298,6 +298,8 @@ if __name__ == '__main__':
     ofn = str(input('Output file name: '))
     dti = float(input('dt value: '))
     sml = float(input('Sim length: '))
+
+    print('Expected sim length is ' + str(sml/dti))
 
     dist_name = str(input('Distribution to use: '))
     dist_name = dist_name.split(',')
