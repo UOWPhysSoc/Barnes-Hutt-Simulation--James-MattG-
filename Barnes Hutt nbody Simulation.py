@@ -20,7 +20,7 @@ import time
 class BarnesHut():
 #Barnes Hutt Class containing all sim information and algorithms
     
-    def __init__(self,dist,dt,timelim,filename):
+    def __init__(self,dist,dt,timelim,filename,G):
     #Initialization function handling distribution and simulation settings
         
         #Sim settings
@@ -31,17 +31,25 @@ class BarnesHut():
         self.timelim = timelim
         self.dt = dt
         self.filename = filename
-        self.outputsize = (10.0/72.5)*1E5/(self.n)
+        self.outputsize = 5*1E4/(self.n)
         self.file_no = 1
+
+        self.estimated_runtime = self.n * log(self.n) * self.timelim/self.dt
+        #print(self.estimated_runtime)
         
         #Constants and global values
         self.time = 0
         self.P = vector(0,0,0)
         self.M = 1
         self.COM = vector(0,0,0)
-        self.G = 1
-        self.epsilon = 0.1
-        self.theta = 0.25
+        self.EKi = 0
+        self.EKf = 0
+        self.EPi = 0
+        self.EPf = 0
+        self.G = G
+
+        self.epsilon = 0
+        self.theta = 0.2
         self.quit = False
         
         #Data Structures prior to initial data generation
@@ -49,25 +57,40 @@ class BarnesHut():
         self.t = None       #Tree will be calculated later
         
         #Initial data generation
-        #self.gen()
+        self.gen()
+        [EKi, EPi] = self.energy()
+        print('Initial energy is ' + str(EKi + EPi))
         self.verletfirst()
         self.detrange()    
         self.t = self.tree(10+self.R,self.bodies)
 
+    def energy(self):
+
+        Ek = 0
+        Ep = 0
+
+        for i in self.bodies:
+            Ek += 0.5 * i['mass'] * pow(mag(i['vel']),2)
+            for j in self.bodies:
+                if i != j:
+                    Ep -= self.G*i['mass']*j['mass']/abs(i['pos-1'] - j['pos-1'])
+        return [Ek, Ep]
+        
+
     def gen(self):
-        pass
     #Generation function using the external distributions
 
         #Determine the initial net momentum, total mass and centre of mass
-##        for i in self.bodies:
-##            self.P += i['mass']*i['vel']
-##            self.M += i['mass']
-##            self.COM = (self.COM*self.M + i['mass']*i['pos-1'])/(self.M + i['mass'])
-##
+        for i in self.bodies:
+            self.P += i['mass']*i['vel']
+            self.M += i['mass']
+            self.COM = (self.COM*self.M + i['mass']*i['pos-1'])/(self.M + i['mass'])
+
 ##        #Normalize velocity using the net momentum and total mass so that there is no net movement and centre sim at the COM
-##        for i in self.bodies:
-##            i['vel'] -= self.P/self.M
-##            i['pos-1'] -= self.COM
+        for i in self.bodies:
+            i['vel'] -= self.P/self.M
+            i['pos-1'] -= self.COM
+            i['pos'] -= self.COM
 
     def verletfirst(self):
     #The zeroth step for Verlet numerical integration
@@ -145,7 +168,6 @@ class BarnesHut():
 
         #create clean temp step bus
         stepbus = []
-        #print(self.bodies)
         #Write cartesian coords and mass to step bus 
         for i in self.bodies:
             stepbus.append([float(i['pos-1'].x),float(i['pos-1'].y),float(i['pos-1'].z),float(i['mass'])*self.M])
@@ -157,7 +179,6 @@ class BarnesHut():
         if len(self.outputbus) == self.outputsize or ty == 'fin':
             self.file = open(self.filename + str(self.file_no) + '.barnes','wb')
             pickle.dump(self.outputbus,self.file)
-            #print(self.outputbus)
             self.outputbus = []
             self.file.close()
             self.file_no += 1
@@ -169,6 +190,8 @@ class BarnesHut():
         #Check sim length
         if self.time > self.timelim:
             self.write('fin')
+            [EKf, EPf] = self.energy()
+            print('Final energy is ' + str(EKf + EPf))
             self.quit = True
 
         else:
@@ -187,8 +210,9 @@ class BarnesHut():
             self.verlet(i)
 
         #Print progress percentage
-        if round((self.time/self.timelim)*100,5) %1 == 0 and (self.time/self.timelim)*100<=100:
-            print(str(round((self.time/self.timelim)*100,2))+'% done')
+        if self.estimated_runtime > 1E5:
+            if round((self.time/self.timelim)*100,5) %1 == 0 and (self.time/self.timelim)*100<=100:
+                print(str(round((self.time/self.timelim)*100,2))+'% done')
 
         #Iterate timing
         self.time += self.dt
@@ -295,25 +319,42 @@ class node():
 if __name__ == '__main__':
 
     #Inputs
-    ofn = str(input('Output file name: '))
+
+    G = 1
+    
+    while True:
+        try:
+            ofn = str(input('Output file name: '))
+            break
+        except:
+            pass
     dti = float(input('dt value: '))
     sml = float(input('Sim length: '))
 
-    print('Expected sim length is ' + str(sml/dti))
+    #print('Expected sim length is ' + str(sml/dti))
 
-    dist_name = str(input('Distribution to use: '))
+    while True:
+        try:
+            dist_name = str(input('Distribution to use: '))
+            break
+        except:
+            pass
     dist_name = dist_name.split(',')
-    dist = distributions(dist_name)
+    dist = distributions(dist_name,G)
 
     #Define Sim and run
-    b = BarnesHut(dist,dti,sml,ofn)
-    #print(b.n)
+    b = BarnesHut(dist,dti,sml,ofn,G)
+    t_start = time.clock()
     while True:
         if b.quit == True:
             break
         b.step()
-
+    t_final = time.clock()
+    t_total = t_final - t_start
+    if t_total < 60:
+        print('Time taken was ' + str(t_total) + ' seconds')
+    else:
+        print('Time taken was ' + str(int(t_total/60)) + ':' + str(int(t_total%60)) + ' minutes')
     #Play sim
     plyr = barnesplayer.player(ofn)
- #   pbr = int(input('Playback rate: '))
     plyr.play()

@@ -13,18 +13,19 @@ from math import *
 
 class distributions():
 
-    def __init__(self, dist_name):
+    def __init__(self, dist_name, G):
         self.dist_name = dist_name
         self.part = []
         self.n = 0
         self.index = 0
+        self.G = G
 
     def call(self):
         for i in self.dist_name:
             try:
                 getattr(self, i)()
             except:
-                true
+                pass
         return self.part
 
     def uniform_cube(self):
@@ -50,6 +51,7 @@ class distributions():
 
     def ring_old(index,posd,veld,centralmass):
 #Ring type distribution around a massive central body
+        # NOT APPROPRIATED FOR NEW DISTRIBUTION SYSTEM
 
         n = int(input('Number of bodies: '))
         posd
@@ -106,7 +108,7 @@ class distributions():
                 'pos-1':r,
                 'pos':r,
                 'mass':other_mass,
-                'vel':cross(r,vector(0,0,1))*sqrt(1*(cent_mass + n_new*other_mass)*(1-exp(-mag(r)/mean_r))),
+                'vel':cross(r/mag(r),vector(0,0,1))*pow(self.G*(cent_mass + n_new*other_mass*(1-exp(-mag(r)/mean_r)))/mag(r),0.5),
                 'acc':vector(0,0,0),
                 'num':self.index
                 })

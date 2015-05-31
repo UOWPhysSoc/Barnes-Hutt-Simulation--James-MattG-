@@ -21,6 +21,7 @@ class player():
         self.rate = int(input('Playback rate: '))
         self.index = 1
         self.scene = display(width = 500, height = 500)
+        self.trail = True
         while True:
             try:
                 self.file = open(filename + str(self.index) + '.barnes','rb')
@@ -42,9 +43,13 @@ class player():
 
         #Create visual representations
             for i in self.steps[0]:
-                self.particles.append(sphere(pos = (i[0],i[1],i[2]),radius = 0.1*pow(i[3],1/3)))#
+                self.particles.append(sphere(pos = (i[0],i[1],i[2]),radius = 0.1*pow(i[3],0.33)))#
+                if self.trail:
+                    self.particles[-1].trail = curve()
             if self.index == 1:
                 self.scene.autoscale = True
+            else:
+                self.scene.autoscale = False
             self.play()
         
     def play(self):
@@ -61,6 +66,8 @@ class player():
             #Move spheres to relavent posiions
             for j in range(0,len(self.particles)):
                 self.particles[j].pos = (self.steps[i][j][0],self.steps[i][j][1],self.steps[i][j][2])
+                if self.trail:
+                    self.particles[j].trail.append(pos = self.particles[j].pos)
 
             #Step player
             i += 1
