@@ -8,7 +8,7 @@ Avaliable for use under a GPL v3 licence.
 '''
 
 #Import dependent libraries
-from visual import *
+#from visual import *
 import pickle
 
 

@@ -10,7 +10,7 @@ Avaliable for use under a GPL v3 licence.
 '''
 
 #Dependant library imports
-from visual import *
+#from visual import *
 from barnesdist import *
 import barnesplayer
 import pickle
