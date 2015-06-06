@@ -1,8 +1,21 @@
 #1 python3
+from vector import *
+
+
 
 DISTRIBUTIONS = [
-            {'fname':'Two_Body', 'name':'Two Body'},
-            {'fname':'Kepler', 'name':'Kepler System'},
-            {'fname':'Kepler1', 'name':'Kepler System1'}
+            {'fname':'twoBody', 'name':'Two Body'},
+            {'fname':'kepler', 'name':'Kepler System'}
             ]
         
+class distributions:
+
+    def __init__(self, G):
+        self.part = []
+        self.n = 0
+        self.index = 0
+        self.G = G
+
+    def call(self):
+
+        return self.part

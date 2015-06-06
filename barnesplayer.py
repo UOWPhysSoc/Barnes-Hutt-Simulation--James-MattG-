@@ -8,7 +8,6 @@ Avaliable for use under a GPL v3 licence.
 '''
 
 #Import dependent libraries
-#from visual import *
 import pickle
 
 
@@ -81,6 +80,7 @@ class player():
 
 
 if __name__ == '__main__':
+    from visual import *
 #If this is executed as standalone give input options
     ifn = input('Input file name: ')
     p = player(ifn)

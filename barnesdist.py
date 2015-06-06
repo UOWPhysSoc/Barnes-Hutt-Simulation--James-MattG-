@@ -9,6 +9,7 @@ Avaliable for use under a GPL v3 licence.
 #Import dependent libraries
 from random import *
 #from visual import *
+from vector import *
 from math import *
 
 class distributions():

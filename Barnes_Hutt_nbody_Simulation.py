@@ -28,8 +28,8 @@ class BarnesHut():
         self.dist = dist
         self.bodies = self.dist.call()
         self.n = self.dist.n
-        self.timelim = timelim
-        self.dt = dt
+        self.timelim = float(timelim)
+        self.dt = float(dt)
         self.filename = filename
         self.outputsize = 5*1E4/(self.n)
         self.file_no = 1
@@ -46,7 +46,7 @@ class BarnesHut():
         self.EKf = 0
         self.EPi = 0
         self.EPf = 0
-        self.G = G
+        self.G = float(G)
 
         self.epsilon = 0
         self.theta = 0.2

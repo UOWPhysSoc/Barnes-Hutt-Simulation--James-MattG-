@@ -3,10 +3,15 @@
 import Barnes_Hutt_nbody_Simulation as bh
 from tkinter import *
 from Distributions import *
+from functools import partial
+from vector import *
+import time
+
 
 CONSTANTS = {'dt':'0.01',
              't':'1',
-             'G':'1'}
+             'G':'1',
+             'File Name':'untitled'}
 
 class BarnesGUI(Frame):
 
@@ -14,7 +19,6 @@ class BarnesGUI(Frame):
 
         self.master = master
         Frame.__init__(self, self.master)
-        self.master.title = 'Barnes Hutt GUI'
         self.mainFrame = Frame(self.master)
         self.distFrame = Frame(self.master)
         self.dt = StringVar()
@@ -24,23 +28,43 @@ class BarnesGUI(Frame):
         self.G = StringVar()
         self.G.set(CONSTANTS['G'])
         self.fileName = StringVar()
+        self.fileName.set(CONSTANTS['File Name'])
         self.activeDist = []
-        self.activeDistWidgets = []
+
+        self.dist = barnesdist_GUI.distributions(self.G.get())
 
         #Create the default widgets for value entry
         self.createDefaultWidgets()
-        self.mainFrame.pack()
+        self.mainFrame.pack(side=LEFT)
         self.pack()
 
         #Create menu bar
         self.createDistMenu()
 
     def finish(self):
-        if self.dt.get().replace('.','').isnumeric():
-            print(self.dt.get())
-            self.quit()
+
+        for i in self.activeDist:
+            output = []
+            for j in i.subFrames:
+                output.append(j.pValue.get())
+            i.dist.run(output,self.dist)
+
+        b = bh.BarnesHut(self.dist, self.dt.get(), self.t.get(), self.fileName.get(),self.G.get())
+        t_start = time.clock()
+        while True:
+            if b.quit == True:
+                break
+            b.step()
+        t_final = time.clock()
+        t_total = t_final - t_start
+        if t_total < 60:
+            print('Time taken was ' + str(t_total) + ' seconds')
         else:
-            messagebox.showerror(message='Invalid Input! Try again.', title='U dun fukd up')
+            print('Time taken was ' + str(int(t_total/60)) + ':' + str(int(t_total%60)) + ' minutes')
+
+
+
+        self.quit()
 
 
     def quit(self):
@@ -59,7 +83,22 @@ class BarnesGUI(Frame):
     #To create all the default widgets
     def createDefaultWidgets(self):
 
-        # dt Entry
+        # Main titles
+        self.mainTitle = Label(self.mainFrame, text='Main Parameters')
+        self.mainTitle.config(font = ('',20))
+        self.mainTitle.pack()
+        separator = Frame(self.mainFrame,height=2, bd=1, relief=SUNKEN)
+        separator.pack(fill=X, padx=5, pady=5)
+
+        self.distTitleFrame = Frame(self.distFrame)
+        self.distTitle = Label(self.distTitleFrame, text='Active Distributions')
+        self.distTitle.config(font = ('',20))
+        self.distTitle.pack()
+        separator = Frame(self.distTitleFrame,height=2, bd=1, relief=SUNKEN)
+        separator.pack(fill=X, padx=5, pady=5)
+        self.distTitleFrame.pack()
+
+        #dt Entry
         self.tFrame = Frame(self.mainFrame)
         self.dt_text = Label(self.tFrame, text = 'Step size:')
         self.dt_text.pack(side=LEFT)
@@ -84,6 +123,15 @@ class BarnesGUI(Frame):
         self.G_entry = Entry(self.GFrame, width = 5, textvariable=self.G)
         self.G_entry.pack(side=LEFT)
         self.GFrame.pack()
+
+        # File name
+
+        self.fileNameFrame = Frame(self.mainFrame)
+        self.fileName_text = Label(self.fileNameFrame, text = 'File name:')
+        self.fileName_text.pack(side=LEFT)
+        self.fileName_entry = Entry(self.fileNameFrame, width = 10, textvariable = self.fileName)
+        self.fileName_entry.pack(side=LEFT)
+        self.fileNameFrame.pack()
         
         # Finish button
         self.finishFrame = Frame(self.mainFrame)
@@ -99,23 +147,54 @@ class BarnesGUI(Frame):
         self.distMenu = Menu(self.menuBar, tearoff = 0)
         self.menuBar.add_cascade(label = 'Distributions', menu = self.distMenu)
         for i in DISTRIBUTIONS:
-            print(i)
-            self.distMenu.add_command(label=i['name'],command=lambda:self.addDist(i['fname']))
+            self.distMenu.add_command(label=i['name'],command=partial(self.addDist,i['fname']))
         self.master.config(menu=self.menuBar)
 
 
     def addDist(self, distName):
-        print(distName)
-        self.activeDist.append(exec(distName + '()'))
-        self.activeDistWidgets.append(Frame(self.master))
-        
-        pass
 
-    def makeWidget(self, pname,ptype,pdefault):
-
-        if ptype == 'numeric':
-            pass
+        self.activeDist.append(distFrame(self.distFrame, distName))
+        self.distFrame.pack()
         
+
+class distFrame(Frame):
+
+    def __init__(self, master, distName):
+        
+        self.master = master
+        Frame.__init__(self, self.master)
+
+        separator = Frame(self,width=2, bd=1, relief=SUNKEN)
+        separator.pack(fill=Y, padx=5, pady=5, side=LEFT)
+
+        self.distName = distName
+        self.dist = eval(self.distName + '()')
+        self.frameLabel = Label(self,text = self.dist.name)
+        self.frameLabel.pack()
+
+        self.subFrames = []
+
+        for i in self.dist.parameters:
+            self.subFrames.append(subFrame(self,i['pName'],i['pType'],i['default']))
+
+        self.pack(side=LEFT)
+        
+class subFrame(Frame):
+
+    def __init__(self, master, label, pType, default):
+        
+        self.master = master
+        Frame.__init__(self, self.master)
+        self.pValue = StringVar()
+        self.pValue.set(default)
+        self.label = Label(self, text=label)
+        self.label.pack(side=LEFT)
+
+        if pType == 'numeric':
+            self.entry = Entry(self, width = 8, textvariable = self.pValue)
+        
+        self.entry.pack(side=LEFT)
+        self.pack()
            
         
 
@@ -134,20 +213,8 @@ class BarnesGUI(Frame):
             agebox.showerror(message='Invalid Input! '+, title='U dun fukd up')'''
         
 
-'''class Dist(Toplevel):
-
-    def __init__(self, parent, master):
-
-        self.parent = parent
-        self.master = master
-        Toplevel.__init__(self, self.master)
-        Toplevel.title = 'Distributions'
-
-        self.l = Label(self, text = 'hello')
-        self.l.pack()'''
-
 root = Tk()
-root.title('Barnes GUI')
+root.title('Barnes Hutt GUI')
 GUI = BarnesGUI(master = root)
 GUI.mainloop()
 

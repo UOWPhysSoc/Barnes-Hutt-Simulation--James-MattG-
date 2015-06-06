@@ -1,2 +1,3 @@
 from .barnesdist_GUI import DISTRIBUTIONS
-from .two_body import two_body
+from .barnesdist_GUI import distributions
+from .twoBody import twoBody
