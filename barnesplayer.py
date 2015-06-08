@@ -82,6 +82,11 @@ class player():
 if __name__ == '__main__':
     from visual import *
 #If this is executed as standalone give input options
-    ifn = input('Input file name: ')
+    while True:
+        try:
+            ifn = input('Input file name: ')
+            break
+        except:
+            pass
     p = player(ifn)
     print('fin')

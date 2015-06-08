@@ -178,7 +178,7 @@ class BarnesHut():
         #If sim finishes or output bus reaches et size, write bus to file and clear bus
         if len(self.outputbus) == self.outputsize or ty == 'fin':
             self.file = open(self.filename + str(self.file_no) + '.barnes','wb')
-            pickle.dump(self.outputbus,self.file)
+            pickle.dump(self.outputbus,self.file, protocol = 2)
             self.outputbus = []
             self.file.close()
             self.file_no += 1
