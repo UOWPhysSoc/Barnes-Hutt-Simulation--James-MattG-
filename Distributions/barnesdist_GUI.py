@@ -1,5 +1,4 @@
 #1 python3
-from vector import *
 
 
 

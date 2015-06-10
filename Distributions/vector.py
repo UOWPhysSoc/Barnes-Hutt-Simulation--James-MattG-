@@ -1,4 +1,6 @@
 from math import sqrt
+from math import sin
+from math import cos
 
 class vector:
    def __init__(self, x, y, z):
@@ -44,6 +46,25 @@ class vector:
    def __str__(self):
       return str((self.x, self.y, self.z))
 
+   def rotate(self,angle,u):
+      if (not isinstance(angle, float) and not isinstance(angle,int)):
+         raise TypeError('Angle must be a number!')
+      else:
+         if not isinstance(u, vector):
+            raise TypeError('Second arguement must be a vector!')
+         else:
+            u = u/abs(u)
+            a = sin(angle)
+            b = 1-cos(angle)
+            v = vector(0,0,0)
+            v.x = self.x*((1-b)+b*u.x**2)+ self.y*(u.x*u.y*b-u.z*a)+self.z*(u.x*u.z*b+u.y*a)
+            v.y = self.x*(u.x*u.y*b+u.z*a)+ self.y*((1-b)*u.y**2*b)+ self.z*(u.y*u.z*b - u.x*a)
+            v.z = self.x*(u.z*u.x*b-u.y*a)+self.y*(u.z*u.y*b+u.x*a)+self.z*((1-b+u.z**2*b))
+            self.x = v.x
+            self.y = v.y
+            self.z = v.z
+      
+
 def mag(vec):
    return abs(vec)
 
@@ -66,3 +87,15 @@ def cross(u, v):
 def proj(vec1, vec2):
    return dot(vec1, norm(b))*norm(b)
 
+def strToVector(string):
+   try:
+      x = string[1:-1]
+      y = x.split(',')
+      z = vector(0,0,0)
+      z.x = float(y[0])
+      z.y = float(y[1])
+      z.z = float(y[2])
+      return z
+   except:
+      raise TypeError('Invalid string to convert to vector.')
+      return vector(0,0,0)

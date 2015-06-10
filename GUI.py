@@ -4,7 +4,6 @@ import Barnes_Hutt_nbody_Simulation as bh
 from tkinter import *
 from Distributions import *
 from functools import partial
-from vector import *
 import time
 
 
@@ -147,7 +146,8 @@ class BarnesGUI(Frame):
         self.distMenu = Menu(self.menuBar, tearoff = 0)
         self.menuBar.add_cascade(label = 'Distributions', menu = self.distMenu)
         for i in DISTRIBUTIONS:
-            self.distMenu.add_command(label=i['name'],command=partial(self.addDist,i['fname']))
+            if i['name'] != None:
+                self.distMenu.add_command(label=i['name'],command=partial(self.addDist,i['fname']))
         self.master.config(menu=self.menuBar)
 
 
@@ -191,6 +191,12 @@ class subFrame(Frame):
         self.label.pack(side=LEFT)
 
         if pType == 'numeric':
+            self.entry = Entry(self, width = 8, textvariable = self.pValue)
+
+        if pType == 'int':
+            self.entry = Entry(self, width = 5, textvariable = self.pValue)
+
+        if pType == 'vector':
             self.entry = Entry(self, width = 8, textvariable = self.pValue)
         
         self.entry.pack(side=LEFT)
