@@ -22,7 +22,7 @@ from math import *
 class BarnesHut():
 #Barnes Hutt Class containing all sim information and algorithms
     
-    def __init__(self,dist,dt,timelim,filename,G):
+    def __init__(self,dist,dt,timelim,filename,G, theta=0.2):
     #Initialization function handling distribution and simulation settings
         
         #Sim settings
@@ -35,6 +35,7 @@ class BarnesHut():
         self.filename = filename
         self.outputsize = 5*1E4/(self.n)
         self.file_no = 1
+        self.percent = 0
 
         self.estimated_runtime = self.n * log(self.n) * self.timelim/self.dt
         #print(self.estimated_runtime)
@@ -51,7 +52,7 @@ class BarnesHut():
         self.G = float(G)
 
         self.epsilon = 0
-        self.theta = 0.2
+        self.theta = theta
         self.quit = False
         
         #Data Structures prior to initial data generation
@@ -212,9 +213,10 @@ class BarnesHut():
             self.verlet(i)
 
         #Print progress percentage
-        if self.estimated_runtime > 1E5:
-            if round((self.time/self.timelim)*100,5) %1 == 0 and (self.time/self.timelim)*100<=100:
-                print(str(round((self.time/self.timelim)*100,2))+'% done')
+        if round((self.time/self.timelim)*100,5) %1 == 0 and (self.time/self.timelim)*100<=100:
+            self.percent = round((self.time/self.timelim)*100,2)
+            if self.estimated_runtime > 1E5:
+                print(str(self.percent)+'% done')
 
         #Iterate timing
         self.time += self.dt

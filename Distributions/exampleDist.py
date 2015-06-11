@@ -12,8 +12,9 @@ class exampleDist:  # MAKE SURE TO CHANGE THIS! AND ADD THE SAME FUNCTION
         # but the entries can be changed. Currently 'pType' can be:
             # numeric, vector, int.
         self.parameters = [
-            {'pName':'Mass 1', 'pType':'numeric', 'default':1},
-            {'pName':, 'pType':, 'default':}
+            {'pName':'Mass 1', 'pType':'numeric', 'default':1, 'tooltip':},
+            {'pName':'Net velocity','pType':'vector','default':vector(0,0,0),'tooltip':'Initial net velocity of group.\nOnly important for relative velocity\nbetween different distributions as\nthe total momentum is set to zero.'},
+            {'pName':, 'pType':, 'default':, 'tooltip':}
 
     def run(self, imports, dist):
 

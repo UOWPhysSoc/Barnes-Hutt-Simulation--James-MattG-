@@ -48,7 +48,8 @@ class player():
             if self.index == 1:
                 self.scene.autoscale = True
             else:
-                self.scene.autoscale = False
+                #self.scene.autoscale = False
+                pass
             self.play()
         
     def play(self):

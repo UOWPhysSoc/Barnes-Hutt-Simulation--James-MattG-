@@ -1,7 +1,9 @@
 #! python3
 
 import Barnes_Hutt_nbody_Simulation as bh
+from wckToolTips import *
 from tkinter import *
+from tkinter.ttk import *
 from Distributions import *
 from functools import partial
 import time
@@ -10,7 +12,8 @@ import time
 CONSTANTS = {'dt':'0.01',
              't':'1',
              'G':'1',
-             'File Name':'untitled'}
+             'File Name':'untitled',
+             'theta':'0.2'}
 
 class BarnesGUI(Frame):
 
@@ -28,6 +31,8 @@ class BarnesGUI(Frame):
         self.G.set(CONSTANTS['G'])
         self.fileName = StringVar()
         self.fileName.set(CONSTANTS['File Name'])
+        self.theta = StringVar()
+        self.theta.set(CONSTANTS['theta'])
         self.activeDist = []
 
         self.dist = barnesdist_GUI.distributions(self.G.get())
@@ -48,8 +53,10 @@ class BarnesGUI(Frame):
                 output.append(j.pValue.get())
             i.dist.run(output,self.dist)
 
-        b = bh.BarnesHut(self.dist, self.dt.get(), self.t.get(), self.fileName.get(),self.G.get())
+        b = bh.BarnesHut(self.dist, float(self.dt.get()), float(self.t.get()), self.fileName.get(),float(self.G.get()),theta=float(self.theta.get()))
         t_start = time.clock()
+        self.progress = Progressbar(self.mainFrame, orient = 'horizontal', variable = b.percent, length = 300)
+        self.progress.pack()
         while True:
             if b.quit == True:
                 break
@@ -60,10 +67,6 @@ class BarnesGUI(Frame):
             print('Time taken was ' + str(t_total) + ' seconds')
         else:
             print('Time taken was ' + str(int(t_total/60)) + ':' + str(int(t_total%60)) + ' minutes')
-
-
-
-        self.quit()
 
 
     def quit(self):
@@ -84,50 +87,59 @@ class BarnesGUI(Frame):
 
         # Main titles
         self.mainTitle = Label(self.mainFrame, text='Main Parameters')
-        self.mainTitle.config(font = ('',20))
+        self.mainTitle.config(font = ('',18))
         self.mainTitle.pack()
-        separator = Frame(self.mainFrame,height=2, bd=1, relief=SUNKEN)
+        separator = Frame(self.mainFrame,height=2, relief=SUNKEN)
         separator.pack(fill=X, padx=5, pady=5)
 
         self.distTitleFrame = Frame(self.distFrame)
         self.distTitle = Label(self.distTitleFrame, text='Active Distributions')
-        self.distTitle.config(font = ('',20))
+        self.distTitle.config(font = ('',18))
         self.distTitle.pack()
-        separator = Frame(self.distTitleFrame,height=2, bd=1, relief=SUNKEN)
+        separator = Frame(self.distTitleFrame,height=2, relief=SUNKEN)
         separator.pack(fill=X, padx=5, pady=5)
         self.distTitleFrame.pack()
 
         #dt Entry
         self.tFrame = Frame(self.mainFrame)
-        self.dt_text = Label(self.tFrame, text = 'Step size:')
+        self.dt_text = Label(self.tFrame, text = 'Step size')
         self.dt_text.pack(side=LEFT)
+        register(self.dt_text,'Simulation time steps')
         self.dt_entry = Entry(self.tFrame, width = 8, textvariable=self.dt)
         self.dt_entry.pack(side=LEFT)
 
         # time entry
-        self.t_text = Label(self.tFrame, text = '  Total time:')
+        self.t_text = Label(self.tFrame, text = '   Total time')
         self.t_text.pack(side=LEFT)
+        register(self.t_text,'Total time steps simulated over')
         self.t_entry = Entry(self.tFrame, width = 8, textvariable=self.t, validate='all', validatecommand=lambda:self.update_steps(self.t))
         self.t_entry.pack(side=LEFT)
 
         self.steps_text = Label(self.tFrame, text='  ' + str(int(float((self.t.get()))/float(self.dt.get()))) + ' steps')
         self.steps_text.pack(side=LEFT)
+        register(self.steps_text,'Number of time steps calculated')
 
         self.tFrame.pack()
 
         # G entry
         self.GFrame = Frame(self.mainFrame)
-        self.G_text = Label(self.GFrame, text = 'Gravitational constant:')
+        self.G_text = Label(self.GFrame, text = 'Gravitational constant')
         self.G_text.pack(side=LEFT)
         self.G_entry = Entry(self.GFrame, width = 5, textvariable=self.G)
         self.G_entry.pack(side=LEFT)
+        self.theta_text = Label(self.GFrame, text = '   Approx parameter')
+        self.theta_text.pack(side=LEFT)
+        register(self.theta_text,'Bigger this is, the faster the simulation\nwill run, at the expense of accuracy.\nSetting to 0 will reduce to maximum calculations.')
+        self.theta_entry = Entry(self.GFrame, width = 5, textvariable = self.theta)
+        self.theta_entry.pack(side = LEFT)
         self.GFrame.pack()
 
         # File name
 
         self.fileNameFrame = Frame(self.mainFrame)
-        self.fileName_text = Label(self.fileNameFrame, text = 'File name:')
+        self.fileName_text = Label(self.fileNameFrame, text = 'File name')
         self.fileName_text.pack(side=LEFT)
+        register(self.fileName_text,'The output file name to be used')
         self.fileName_entry = Entry(self.fileNameFrame, width = 10, textvariable = self.fileName)
         self.fileName_entry.pack(side=LEFT)
         self.fileNameFrame.pack()
@@ -136,6 +148,7 @@ class BarnesGUI(Frame):
         self.finishFrame = Frame(self.mainFrame)
         self.finish = Button(self.finishFrame, text = 'Finish', command=self.finish)
         self.finish.pack()
+        register(self.finish,'Run the simulation with current settings')
         self.finishFrame.pack()
 
         
@@ -164,7 +177,7 @@ class distFrame(Frame):
         self.master = master
         Frame.__init__(self, self.master)
 
-        separator = Frame(self,width=2, bd=1, relief=SUNKEN)
+        separator = Frame(self,width=2, relief=SUNKEN)
         separator.pack(fill=Y, padx=5, pady=5, side=LEFT)
 
         self.distName = distName
@@ -175,13 +188,13 @@ class distFrame(Frame):
         self.subFrames = []
 
         for i in self.dist.parameters:
-            self.subFrames.append(subFrame(self,i['pName'],i['pType'],i['default']))
+            self.subFrames.append(subFrame(self,i['pName'],i['pType'],i['default'],i['tooltip']))
 
         self.pack(side=LEFT)
         
 class subFrame(Frame):
 
-    def __init__(self, master, label, pType, default):
+    def __init__(self, master, label, pType, default, tooltip):
         
         self.master = master
         Frame.__init__(self, self.master)
@@ -189,6 +202,8 @@ class subFrame(Frame):
         self.pValue.set(default)
         self.label = Label(self, text=label)
         self.label.pack(side=LEFT)
+        if tooltip != None: 
+            register(self.label,tooltip)
 
         if pType == 'numeric':
             self.entry = Entry(self, width = 8, textvariable = self.pValue)

@@ -8,11 +8,12 @@ class kepler:
 
         self.name = 'Kepler'
         self.parameters = [
-            {'pName':'Central mass', 'pType':'numeric', 'default':1},
-            {'pName':'Other masses', 'pType':'numeric', 'default':1},
-            {'pName':'Total number', 'pType':'int', 'default':2},
-            {'pName':'Mean distance', 'pType':'numeric', 'default':1},
-            {'pName':'Centre', 'pType':'vector', 'default':vector(0,0,0)}]
+            {'pName':'Central mass', 'pType':'numeric', 'default':1, 'tooltip':'Mass of the main body holding the system together'},
+            {'pName':'Other masses', 'pType':'numeric', 'default':1, 'tooltip':'Mass of each other body orbiting the central mass' },
+            {'pName':'Total number', 'pType':'int', 'default':2, 'tooltip':'Total number of masses in this system, including central'},
+            {'pName':'Mean distance', 'pType':'numeric', 'default':1, 'tooltip':'Average distance from central body to others.\nIs gamma distributed'},
+            {'pName':'Centre', 'pType':'vector', 'default':vector(0,0,0), 'tooltip':'Initial position of the central mass'},
+            {'pName':'Net velocity','pType':'vector','default':vector(0,0,0),'tooltip':'Initial net velocity of group.\nOnly important for relative velocity\nbetween different distributions as\nthe total momentum is set to zero.'}]
 
     def run(self, imports, dist):
 
@@ -22,18 +23,19 @@ class kepler:
         dist.n += n
         r0 = float(imports[3])
         origin = strToVector(imports[4])
+        v0 = strToVector(imports[5])
 
         dist.part.append({
             'pos-1':origin,
             'pos':origin,
             'mass':m0,
-            'vel':vector(0,0,0),
+            'vel':vector(0,0,0) + v0,
             'acc':vector(0,0,0),
             'num':dist.index
             })
         dist.index += 1
 
-        for i in range(0,int(imports[2])-1):
+        for i in range(0,n-1):
             
             theta = uniform(0,2*pi)
             r = vector(r0,0,0)
@@ -44,7 +46,7 @@ class kepler:
                 'pos-1':r,
                 'pos':r,
                 'mass':m,
-                'vel':cross(r/mag(r),vector(0,0,1))*pow(M/mag(r),0.5),
+                'vel':cross(r/mag(r),vector(0,0,1))*pow(M/mag(r),0.5) + v0,
                 'acc':vector(0,0,0),
                 'num':dist.index
                 })
