@@ -16,7 +16,7 @@ class exampleDist:  # MAKE SURE TO CHANGE THIS! AND ADD THE SAME FUNCTION
             {'pName':'Net velocity','pType':'vector','default':vector(0,0,0),'tooltip':'Initial net velocity of group.\nOnly important for relative velocity\nbetween different distributions as\nthe total momentum is set to zero.'},
             {'pName':, 'pType':, 'default':, 'tooltip':}
 
-    def run(self, imports, dist):
+    def run(self, imports, dist, G):
 
         # Only thing to change here is the imports. It should be the
         # self.parameters stuff as a list, in the same order. Values will

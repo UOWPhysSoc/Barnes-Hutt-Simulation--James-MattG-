@@ -51,7 +51,7 @@ class vector:
          raise TypeError('Angle must be a number!')
       else:
          if not isinstance(u, vector):
-            raise TypeError('Second arguement must be a vector!')
+            raise TypeError('Second argument must be a vector!')
          else:
             u = u/abs(u)
             a = sin(angle)
@@ -99,3 +99,22 @@ def strToVector(string):
    except:
       raise TypeError('Invalid string to convert to vector.')
       return vector(0,0,0)
+
+def perp(u):
+
+   if not isinstance(u,vector):
+      raise TypeError('Argument must be a vector')
+   elif mag(u) == 0:
+         raise Exception('Must be non zero vector')
+   else:
+      t = vector(0,0,0)
+      if (u.x != 0 or u.y != 0):
+         t.x = u.y
+         t.y = -u.x
+      elif (u.x != 0 or u.z != 0):
+         t.x = u.z
+         t.z = -u.x
+      elif (u.y != 0 or u.z != 0):
+         t.y = u.z
+         t.z = -u.y
+      return norm(t)

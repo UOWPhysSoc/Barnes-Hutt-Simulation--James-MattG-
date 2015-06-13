@@ -2,6 +2,7 @@
 
 import Barnes_Hutt_nbody_Simulation as bh
 from wckToolTips import *
+#from Toggle import ToggledFrame
 from tkinter import *
 from tkinter.ttk import *
 from Distributions import *
@@ -51,7 +52,7 @@ class BarnesGUI(Frame):
             output = []
             for j in i.subFrames:
                 output.append(j.pValue.get())
-            i.dist.run(output,self.dist)
+            i.dist.run(output,self.dist, float(self.G.get()))
 
         b = bh.BarnesHut(self.dist, float(self.dt.get()), float(self.t.get()), self.fileName.get(),float(self.G.get()),theta=float(self.theta.get()))
         t_start = time.clock()
