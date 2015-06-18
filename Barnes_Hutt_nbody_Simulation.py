@@ -10,54 +10,94 @@ Avaliable for use under a GPL v3 licence.
 '''
 
 #Dependant library imports
-from visual import *
-from barnesdist import *
+#from visual import *
+#from barnesdist import *
 import barnesplayer
 import pickle
 import time
+from Distributions.vector import *
+from math import *
+from tkinter import IntVar
 
 
 class BarnesHut():
 #Barnes Hutt Class containing all sim information and algorithms
     
-    def __init__(self,num,posdist,veldist,dt,timelim,filename):
+    def __init__(self,dist,dt,timelim,filename,G, theta=0.2, damp = 0, resume = False, fileNo = 1):
     #Initialization function handling distribution and simulation settings
         
         #Sim settings
-        self.num = num                   
-        self.timelim = timelim
-        self.posdist = posdist
-        self.veldist = veldist
-        self.dt = dt
-        self.file = open(filename+'.barnes','wb')
+        self.bodies = []
+        self.dist = dist
+        self.bodies = self.dist.call()
+        self.n = self.dist.n
+        self.timelim = float(timelim)
+        self.dt = float(dt)
+        self.filename = filename
+        self.outputsize = 5*1E4/(self.n)
+        self.file_no = fileNo
+        self.percent = IntVar()
+        self.percent.set(0)
+
+        #self.estimated_runtime = self.n * log(self.n) * self.timelim/self.dt
+        self.estimated_runtime = 0
+        #print(self.estimated_runtime)
         
         #Constants and global values
         self.time = 0
         self.P = vector(0,0,0)
         self.M = 0
         self.COM = vector(0,0,0)
-        self.G = 1
-        self.epsilon = 0.1
-        self.theta = 0.25
+        self.EKi = 0
+        self.EKf = 0
+        self.EPi = 0
+        self.EPf = 0
+        self.G = float(G)
+
+        self.epsilon = float(damp)
+        self.theta = theta
         self.quit = False
+        self.finish = False
+        self.resume = resume
+
+        #Collision stuff
+        self.colliding = False
+        self.r0 = 1
+        
         
         #Data Structures prior to initial data generation
-        self.bodies = []
         self.outputbus = []
         self.t = None       #Tree will be calculated later
         
         #Initial data generation
         self.gen()
-        self.verletfirst()
+        [EKi, EPi] = self.energy()
+        print('Initial energy is ' + str(EKi + EPi))
+        if not self.resume:
+            self.verletfirst()
         self.detrange()    
         self.t = self.tree(10+self.R,self.bodies)
 
+        #Time measures
+        self.t_start = time.time()
+        self.treeTime = 0
+        self.forceTime = 0
+
+    def energy(self):
+
+        Ek = 0
+        Ep = 0
+
+        for i in self.bodies:
+            Ek += 0.5 * i['mass'] * pow(mag(i['vel']),2)
+            for j in self.bodies:
+                if i != j:
+                    Ep -= self.G*i['mass']*j['mass']/abs(i['pos-1'] - j['pos-1'])
+        return [Ek, Ep]
+        
+
     def gen(self):
     #Generation function using the external distributions
-        
-        #Generate bodies using a distribution stored in 'barnesdist.py' ring() is used here
-        for i in range(0,self.num):
-            self.bodies.append(ring(i,self.posdist,self.veldist,1000000))
 
         #Determine the initial net momentum, total mass and centre of mass
         for i in self.bodies:
@@ -65,10 +105,11 @@ class BarnesHut():
             self.M += i['mass']
             self.COM = (self.COM*self.M + i['mass']*i['pos-1'])/(self.M + i['mass'])
 
-        #Normalize velocity using the net momentum and total mass so that there is no net movement and centre sim at the COM
+##        #Normalize velocity using the net momentum and total mass so that there is no net movement and centre sim at the COM
         for i in self.bodies:
             i['vel'] -= self.P/self.M
             i['pos-1'] -= self.COM
+            i['pos'] -= self.COM
 
     def verletfirst(self):
     #The zeroth step for Verlet numerical integration
@@ -145,40 +186,54 @@ class BarnesHut():
     #Write data to pickled file, for later use
 
         #create clean temp step bus
-        tempbus = []
-
+        stepbus = []
         #Write cartesian coords and mass to step bus 
         for i in self.bodies:
-            tempbus.append([float(i['pos-1'].x),float(i['pos-1'].y),float(i['pos-1'].z),float(i['mass'])*self.M])
-
+            stepbus.append([float(i['pos-1'].x),float(i['pos-1'].y),float(i['pos-1'].z),float(i['mass'])])
+        
         #Write step bus to output bus
-        self.outputbus.append(tempbus)
+        self.outputbus.append(list(stepbus))
 
         #If sim finishes or output bus reaches et size, write bus to file and clear bus
-        if len(self.outputbus) < 1000 and ty == 'norm':
-            pass
-        if len(self.outputbus) >= 1000 or ty == 'fin':
-            pickle.dump(self.outputbus,self.file)
+        if len(self.outputbus) == self.outputsize or ty == 'fin':
+            self.file = open(self.filename + str(self.file_no) + '.barnes','wb')
+            pickle.dump(self.outputbus,self.file, protocol = 2)
             self.outputbus = []
-            if ty == 'fin':
-                self.file.close()
-                print('Complete')
+            self.file.close()
+            self.file_no += 1
 
     def step(self):
     #Step function to handle all function calling each step
 
-        #Write data
-        self.write()
 
         #Check sim length
         if self.time > self.timelim:
+            self.finish = True
+        if self.finish:
             self.write('fin')
+            [EKf, EPf] = self.energy()
+            print('Final energy is ' + str(EKf + EPf))
+            print(str(self.treeTime/(self.treeTime + self.forceTime)*100)+'% spent on tree generation.')
+            self.t_final = time.time()
+            self.t_total = self.t_final - self.t_start
+            if self.t_total < 60:
+                print('Time taken was ' + str(self.t_total) + ' seconds')
+            else:
+                print('Time taken was ' + str(int(self.t_total/60)) + ':' + str(int(self.t_total%60)) + ' minutes')
+            print('Time per step was ' + str(self.t_total/(self.timelim/self.dt)) + ' seconds')
+            print('which is ' +str(self.t_total/(self.n*self.timelim/self.dt)) + 'per step per particle')
             self.quit = True
-            
+
+        else:
+            self.write()
+
+        self.treeTime -= time.clock()
         #Determine sim range and dynamically construct tree
         self.detrange()
         self.t = self.tree(10+self.R,self.bodies)
-
+        self.treeTime += time.clock()
+        
+        self.forceTime -= time.clock()
         #Determine accelerations
         for i in self.bodies:
             i['acc'] = self.getacc(i,self.root)
@@ -186,13 +241,30 @@ class BarnesHut():
         #Run Verlet integration
         for i in self.bodies:
             self.verlet(i)
+        self.forceTime += time.clock()
+
+        if self.colliding:
+            self.collide()
 
         #Print progress percentage
         if round((self.time/self.timelim)*100,5) %1 == 0 and (self.time/self.timelim)*100<=100:
-            print(str(round((self.time/self.timelim)*100,2))+'% done')
+            self.percent.set(round((self.time/self.timelim)*100,2))
+            if self.estimated_runtime > 1E5:
+                print(str(self.percent.get())+'% done')
 
         #Iterate timing
         self.time += self.dt
+
+    def collide(self):
+
+        for i in self.bodies:
+            for j in self.bodies[i['num']+1:]:
+                r = j['pos']-i['pos']
+                sigma = self.r0*(pow(i['mass'],0.33)+pow(j['mass'],0.33))
+                if mag(r) < sigma:
+                    J = 2*i['mass']*j['mass']*dot(j['vel']-i['vel'],r)/(sigma*(i['mass']+j['mass']))
+                    i['vel'] += J*r/(sigma*i['mass'])
+                    j['vel'] -= J*r/(sigma*j['mass'])
 
         
 class node():
@@ -291,26 +363,48 @@ class node():
                                       (self.yr[1]+self.yr[0])/2,self.yr[1],
                                       (self.zr[1]+self.zr[0])/2,self.zr[1],
                                 8))
+        
 
         
 if __name__ == '__main__':
 
     #Inputs
-    ofn = input('Output file name: ')
-    nop = int(input('Number of bodies: '))
-    pdi = int(input('Position distribution: '))
-    vdi = int(input('Velocity distribution: '))
+
+    G = 1
+    
+    while True:
+        try:
+            ofn = str(input('Output file name: '))
+            break
+        except:
+            pass
     dti = float(input('dt value: '))
-    sml = int(input('Sim length: '))
+    sml = float(input('Sim length: '))
+
+    #print('Expected sim length is ' + str(sml/dti))
+
+    while True:
+        try:
+            dist_name = str(input('Distribution to use: '))
+            break
+        except:
+            pass
+    dist_name = dist_name.split(',')
+    dist = distributions(dist_name,G)
 
     #Define Sim and run
-    b = BarnesHut(nop,pdi,vdi,dti,sml,ofn)
+    b = BarnesHut(dist,dti,sml,ofn,G)
+    t_start = time.time()
     while True:
         if b.quit == True:
             break
         b.step()
-
+    t_final = time.time()
+    t_total = t_final - t_start
+    if t_total < 60:
+        print('Time taken was ' + str(t_total) + ' seconds')
+    else:
+        print('Time taken was ' + str(int(t_total/60)) + ':' + str(int(t_total%60)) + ' minutes')
     #Play sim
     plyr = barnesplayer.player(ofn)
-    pbr = int(input('Playback rate: '))
-    plyr.play(pbr)
+    plyr.play()

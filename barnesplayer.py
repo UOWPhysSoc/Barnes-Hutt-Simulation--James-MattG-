@@ -8,64 +8,86 @@ Avaliable for use under a GPL v3 licence.
 '''
 
 #Import dependent libraries
-from visual import *
 import pickle
-
 
 class player():
 #Player Class containing unpacker and ply function
 
     
-    def __init__(self,filename):
+    def __init__(self,filename, play_rate = 30):
     #Unpacks data from file
-
-        #Open file, set up data structures for incoming data
-        self.file = open(filename+'.barnes','rb')
-        self.steps = []
-        self.scene = display(width = 1920, height = 1080)
-        self.particles = []
-
-        #Unpack data into pre-existing data structures
+        self.play_rate = play_rate
+        self.index = 1
+        self.scene = display(width = 1000, height = 800)
+        self.trail = False
         while True:
             try:
-                for i in pickle.load(self.file):
-                    self.steps.append(i)
+                self.file = open(filename + str(self.index) + '.barnes','rb')
+                print("Opened file " + filename + str(self.index))
+                self.index += 1
             except:
+                print('Ended trying to open file ' + str(self.index))
                 break
+            #Open file, set up data structures for incoming data
+            
+            self.steps = []
+            self.particles = []
 
-        #Create visual representations
-        for i in self.steps[0]:
-            self.particles.append(sphere(pos = (i[0],i[1],i[2]),radius = math.log(i[3]+1)))
-        self.scene.autoscale = False
+            #Unpack data into pre-existing data structures
+            self.steps = pickle.load(self.file)
+            self.file.close()
+
+            #print('Number of steps is ' + str(len(self.steps)))
+
+            #Create visual representations
+            for i in self.steps[0]:
+                self.particles.append(sphere(pos = (i[0],i[1],i[2]),radius = 0.1*pow(i[3],0.33)))#
+                if self.trail:
+                    self.particles[-1].trail = curve()
+            if self.index == 1:
+                self.scene.autoscale = True
+            else:
+                self.scene.autoscale = False
+                #pass
+            self.play()
         
-    def play(self,rte):
+    def play(self):
     #Play function
 
         #Set iteration pos to zero
         i = 0
-
+        #print('f called')
         #Loop through steps
-        while i <= len(self.steps):
+        while i < len(self.steps):
 
             #set refresh rate
-            rate(60)
-
+            rate(self.play_rate)
             #Move spheres to relavent posiions
             for j in range(0,len(self.particles)):
                 self.particles[j].pos = (self.steps[i][j][0],self.steps[i][j][1],self.steps[i][j][2])
+                if self.trail:
+                    self.particles[j].trail.append(pos = self.particles[j].pos)
 
             #Step player
-            i = i + rte
+            i += 1
 
             #Handle looping
-            if i >= len(self.steps):
-                i = 0
+            #if i >= len(self.steps):
+            #    i = 0
+        for i in self.particles:
+            i.visible = False
+            del i
 
 
 if __name__ == '__main__':
+    from visual import *
 #If this is executed as standalone give input options
-    ifn = input('Input file name: ')
-    p = player(ifn)
-    pbr = int(input('Playback rate: '))
-    p.play(pbr)
+    while True:
+        try:
+            ifn = input('Input file name: ')
+            break
+        except:
+            pass
+    r = int(input('Playback rate: '))
+    p = player(ifn, r)
     print('fin')
