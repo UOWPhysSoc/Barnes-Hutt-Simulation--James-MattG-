@@ -10,17 +10,16 @@ Avaliable for use under a GPL v3 licence.
 #Import dependent libraries
 import pickle
 
-
 class player():
 #Player Class containing unpacker and ply function
 
     
-    def __init__(self,filename):
+    def __init__(self,filename, play_rate = 30):
     #Unpacks data from file
-        self.rate = int(input('Playback rate: '))
+        self.play_rate = play_rate
         self.index = 1
-        self.scene = display(width = 500, height = 500)
-        self.trail = True
+        self.scene = display(width = 1000, height = 800)
+        self.trail = False
         while True:
             try:
                 self.file = open(filename + str(self.index) + '.barnes','rb')
@@ -38,9 +37,9 @@ class player():
             self.steps = pickle.load(self.file)
             self.file.close()
 
-        #print('Number of steps is ' + str(len(self.steps)))
+            #print('Number of steps is ' + str(len(self.steps)))
 
-        #Create visual representations
+            #Create visual representations
             for i in self.steps[0]:
                 self.particles.append(sphere(pos = (i[0],i[1],i[2]),radius = 0.1*pow(i[3],0.33)))#
                 if self.trail:
@@ -48,8 +47,8 @@ class player():
             if self.index == 1:
                 self.scene.autoscale = True
             else:
-                #self.scene.autoscale = False
-                pass
+                self.scene.autoscale = False
+                #pass
             self.play()
         
     def play(self):
@@ -62,7 +61,7 @@ class player():
         while i < len(self.steps):
 
             #set refresh rate
-            rate(self.rate)
+            rate(self.play_rate)
             #Move spheres to relavent posiions
             for j in range(0,len(self.particles)):
                 self.particles[j].pos = (self.steps[i][j][0],self.steps[i][j][1],self.steps[i][j][2])
@@ -89,5 +88,6 @@ if __name__ == '__main__':
             break
         except:
             pass
-    p = player(ifn)
+    r = int(input('Playback rate: '))
+    p = player(ifn, r)
     print('fin')

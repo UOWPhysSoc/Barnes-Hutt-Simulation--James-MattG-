@@ -4,7 +4,8 @@
 
 DISTRIBUTIONS = [
             {'fname':'twoBody', 'name':'Two Body'},
-            {'fname':'kepler', 'name':'Kepler System'}
+            {'fname':'kepler', 'name':'Kepler System'},
+            {'fname':'uniformSphere', 'name':'Uniform Sphere'}
             ]
         
 class distributions:

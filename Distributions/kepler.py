@@ -46,8 +46,8 @@ class kepler:
             r *= gammavariate(2,1)
             M = m0 + m*n*(1-(mag(r)/r0 + 1)*exp(-mag(r)/r0))
             dist.part.append({
-                'pos-1':r,
-                'pos':r,
+                'pos-1':r+origin,
+                'pos':r+origin,
                 'mass':m,
                 'vel':cross(r/mag(r),R)*pow(G*M/mag(r),0.5) + v0,
                 'acc':vector(0,0,0),
