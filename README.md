@@ -8,6 +8,7 @@ Written in Python 3.x as a collaboration between Matt Griffiths and James Archer
 Initial concept work by James Archer in Python 2.7.
 Concept converted to Python 3 by Matt Griffiths and redesigned to work in a class structure.
 Final design tweaks and bug testing by both parties.
+Can be rendered in blender using the .blend script.
 
 Requires VPython module (http://vpython.org/)
 Python 3.x version can be obtained here (http://www.lfd.uci.edu/~gohlke/pythonlibs/)
