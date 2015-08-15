@@ -9,6 +9,7 @@ Avaliable for use under a GPL v3 licence.
 
 #Import dependent libraries
 import pickle
+from time import sleep
 
 class player():
 #Player Class containing unpacker and ply function
@@ -58,6 +59,7 @@ class player():
         i = 0
         #print('f called')
         #Loop through steps
+        sleep(1)
         while i < len(self.steps):
 
             #set refresh rate

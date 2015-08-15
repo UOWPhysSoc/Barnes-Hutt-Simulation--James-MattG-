@@ -69,7 +69,7 @@ def mag(vec):
    return abs(vec)
 
 def mag2(vec):
-   return abs(vec)**2
+   return vec.x**2 + vec.y**2 + vec.z**2
 
 def norm(vec):
    m = abs(vec)

@@ -4,7 +4,7 @@ Written in collaboration by James Archer and Matt Griffiths.
 
 Note: This sim normalizes to an arbitrary set of values.
 
-REQUIRES VPYTHON TO WORK
+REQUIRES VPYTHON TO WORK (SOMETIMES)
 
 Avaliable for use under a GPL v3 licence.
 '''

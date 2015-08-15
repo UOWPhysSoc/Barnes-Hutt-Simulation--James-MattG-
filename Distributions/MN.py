@@ -2,8 +2,7 @@ from .vector import *
 from random import gauss, uniform, choice
 from math import *
 
-class MN:  # MAKE SURE TO CHANGE THIS! AND ADD THE SAME FUNCTION
-                   # NAME TO BARNESDIST_GUI.PY AND __INIT__.PY  
+class MN: 
 
     def __init__(self):
 
@@ -25,22 +24,38 @@ class MN:  # MAKE SURE TO CHANGE THIS! AND ADD THE SAME FUNCTION
         ratio = float(imports[3])
         a = R/ratio
         b = R
-        r1 = strToVector(imports[4])
-        V0 = strToVector(imports[5])
-        Z0 = norm(strToVector(imports[6]))
-        R0 = perp(Z0)
+        r1 = strToVector(imports[4]) # centre
+        V0 = strToVector(imports[5]) # net velocity
+        Z0 = norm(strToVector(imports[6])) # z axis
+        R0 = perp(Z0) # x axis
+        Y0 = cross(Z0, R0)
 
         coords = metropolisHastings(a, b, 2*R, n)
 
         dist.n += n
 
         for i in coords:
-            theta = uniform(0,2*pi)
+            theta = i[2]
             Rcoord = R0*1
             Rcoord.rotate(theta, Z0)
             z = choice([-1,1]) * abs(i[1])
-            v_mag = sqrt(phi(i[0], i[1], a, b, n*m, G))
-            v_dir = norm(cross(Rcoord, Z0))
+            F = vector(0,0,0)
+
+            for j in coords:
+                if i != j:
+                    jcoord = R0*j[0]
+                    jcoord.rotate(j[2],Z0)
+                    F += m*m*G/mag2(Rcoord*i[0] + Z0*z + -1*jcoord + -1*Z0*j[1])*norm(Rcoord*i[0] + Z0*z + -1*jcoord + -1*Z0*j[1])
+
+            #dR = phi(i[0], i[1], a, b, n*m, G)**3 *i[0]/(G**2 * (n*m)**2)
+            #dz = G*n*m*(a + sqrt(i[1]**2 + b**2))*i[1]/(sqrt(i[0]**2 + (a + sqrt(i[1]**2 + b**2))**2)**3 * sqrt(i[1]**2 + b**2))
+            #F = sqrt(dR**2 + dz**2)
+            Fm = mag(F)
+            v_mag = sqrt(Fm*sqrt(i[0]**2 + i[1]**2)/m)
+            #F_vec = -1*R0*dR*cos(theta) + -1*Y0*dR*sin(theta) + -1*Z0*dz
+            v_dir = cross(norm(Rcoord),Z0)
+                          #norm(R0*i[0]*cos(theta) + Y0*i[0]*sin(theta) + Z0*i[1]))
+            
             dist.part.append({
                 'pos-1':r1 + Rcoord*i[0] + Z0*z,
                 'pos':r1 + Rcoord*i[0] + Z0*z,
@@ -67,21 +82,21 @@ def gauss_2d(coord, sigma):
 
     
 def metropolisHastings(a, b, sigma, n):
-    points = [(0.1,0.1)]
+    points = [(0.1*a,0.1*b)]
     while len(points) < n+1:
         x = gauss_2d(points[-1], sigma)
         a = P(x[0], x[1], a, b)/P(points[-1][0], points[-1][1], a, b)
         if x[0] > 0:
             if a >= 1:
-                points.append(x)
+                points.append((x[0], x[1], uniform(0,2*pi)))
                 
             elif uniform(0, 1) < a:
-                points.append(x)
+                points.append((x[0], x[1], uniform(0,2*pi)))
             else:
-                points.append(points[-1])
+                points.append((points[-1][0], points[-1][1], uniform(0,2*pi)))
                 
     del points[0]
     return points
 
 def phi(R, z, a, b, M, G):
-    return G*M/sqrt(R**2 + (a + sqrt(z**2 + b**2))**2)
+    return -G*M/sqrt(R**2 + (a + sqrt(z**2 + b**2))**2)
