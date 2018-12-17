@@ -17,16 +17,16 @@ import pickle
 import time
 from Distributions.vector import *
 from math import *
-from tkinter import IntVar
 
 
 class BarnesHut():
 #Barnes Hutt Class containing all sim information and algorithms
     
-    def __init__(self,dist,dt,timelim,filename,G, theta=0.2, damp = 0, resume = False, fileNo = 1):
+    def __init__(self,dist,dt,timelim,filename,G, theta=0.2, damp = 0, resume = False, fileNo = 1, withGUI = False):
     #Initialization function handling distribution and simulation settings
         
         #Sim settings
+        self.withGUI = withGUI
         self.bodies = []
         self.dist = dist
         self.bodies = self.dist.call()
@@ -36,8 +36,9 @@ class BarnesHut():
         self.filename = filename
         self.outputsize = 5*1E4/(self.n)
         self.file_no = fileNo
-        self.percent = IntVar()
-        self.percent.set(0)
+        if self.withGUI:
+            self.percent = IntVar()
+            self.percent.set(0)
 
         #self.estimated_runtime = self.n * log(self.n) * self.timelim/self.dt
         self.estimated_runtime = 0
@@ -247,10 +248,11 @@ class BarnesHut():
             self.collide()
 
         #Print progress percentage
-        if round((self.time/self.timelim)*100,5) %1 == 0 and (self.time/self.timelim)*100<=100:
-            self.percent.set(round((self.time/self.timelim)*100,2))
-            if self.estimated_runtime > 1E5:
-                print(str(self.percent.get())+'% done')
+        if self.withGUI:
+            if round((self.time/self.timelim)*100,5) %1 == 0 and (self.time/self.timelim)*100<=100:
+                self.percent.set(round((self.time/self.timelim)*100,2))
+                if self.estimated_runtime > 1E5:
+                    print(str(self.percent.get())+'% done')
 
         #Iterate timing
         self.time += self.dt
