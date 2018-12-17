@@ -79,7 +79,8 @@ class BarnesGUI(Frame):
                                   self.fileName.get(),
                                   float(self.G.get()),
                                   theta=float(self.theta.get()),
-                                  damp=float(self.damp.get()))
+                                  damp=float(self.damp.get()),
+                                  withGUI = True)
 
             else:
 
@@ -94,6 +95,26 @@ class BarnesGUI(Frame):
             self.finish.config(text='Run')
             self.progress.destroy()
             self.clockFrame.destroy()
+            
+    def createConfig(self):
+        
+        for i in self.activeDist:
+            output = []
+            for j in i.subFrames:
+                output.append(j.pValue.get())
+            i.dist.run(output,self.dist, float(self.G.get()))
+
+        toSave = [self.dist,
+                          float(self.dt.get()),
+                          float(self.t.get()),
+                          self.fileName.get(),
+                          float(self.G.get()),
+                          float(self.theta.get()),
+                          float(self.damp.get())]
+        
+        file = open('config.config', 'wb')
+        pickle.dump(toSave, file, protocol = 2)
+        file.close()
 
     def simBegin(self):
         
@@ -232,9 +253,12 @@ class BarnesGUI(Frame):
         
         # Finish button
         self.finishFrame = Frame(self.mainFrame)
-        self.finish = Button(self.mainFrame, text = 'Run', command=self.finish)
-        self.finish.pack(in_=self.finishFrame)
+        self.finish = Button(self.finishFrame, text = 'Run', command=self.finish)
+        self.finish.pack(side = LEFT)
         register(self.finish,'Run the simulation with current settings')
+        self.genScript = Button(self.finishFrame, text = 'Create config file', command=self.createConfig)
+        self.genScript.pack(side = RIGHT)
+        register(self.genScript,'Saves the current settings to a config file to be run via scripting.')
         self.finishFrame.pack()
 
         
