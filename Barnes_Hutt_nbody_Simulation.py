@@ -22,7 +22,19 @@ from math import *
 class BarnesHut():
 #Barnes Hutt Class containing all sim information and algorithms
     
-    def __init__(self,dist,dt,timelim,filename,G, theta=0.2, damp = 0, resume = False, fileNo = 1, withGUI = False):
+    def __init__(self,
+                 dist,
+                 dt,
+                 timelim,
+                 filename,
+                 G,
+                 theta=0.2,
+                 damp = 0,
+                 resume = False,
+                 fileNo = 1,
+                 withGUI = False,
+                 fileScale = 1
+                 ):
     #Initialization function handling distribution and simulation settings
         
         #Sim settings
@@ -34,7 +46,7 @@ class BarnesHut():
         self.timelim = float(timelim)
         self.dt = float(dt)
         self.filename = filename
-        self.outputsize = 5*1E4/(self.n)
+        self.outputsize = 5*1E4/(self.n) * fileScale
         self.file_no = fileNo
         if self.withGUI:
             self.percent = IntVar()
@@ -213,16 +225,16 @@ class BarnesHut():
         if self.finish:
             self.write('fin')
             [EKf, EPf] = self.energy()
-            print('Final energy is ' + str(EKf + EPf))
-            print(str(self.treeTime/(self.treeTime + self.forceTime)*100)+'% spent on tree generation.')
+            print(f"Final energy is {EKf + EPf}")
+            print(f"{self.treeTime/(self.treeTime + self.forceTime)*100}% spent on tree generation.")
             self.t_final = time.time()
             self.t_total = self.t_final - self.t_start
             if self.t_total < 60:
-                print('Time taken was ' + str(self.t_total) + ' seconds')
+                print(f"Time taken was {self.t_total} seconds")
             else:
-                print('Time taken was ' + str(int(self.t_total/60)) + ':' + str(int(self.t_total%60)) + ' minutes')
-            print('Time per step was ' + str(self.t_total/(self.timelim/self.dt)) + ' seconds')
-            print('which is ' +str(self.t_total/(self.n*self.timelim/self.dt)) + 'per step per particle')
+                print(f"Time taken was {int(self.t_total/60)}:{int(self.t_total%60)} minutes")
+            print("Time per step was {self.t_total/(self.timelim/self.dt)} seconds")
+            print(f"which is {self.t_total/(self.n*self.timelim/self.dt)} per step per particle")
             self.quit = True
 
         else:
