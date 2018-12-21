@@ -1,6 +1,9 @@
 __pycache__/
 .cache/
+**/*.pyc
 *.pyc
 /*.egg-info
 *.barnes
 *.config
+results/
+*.blend1
