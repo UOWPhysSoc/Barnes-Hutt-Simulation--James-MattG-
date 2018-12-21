@@ -1,0 +1,25 @@
+#!/bin/bash
+#PBS -N FOD-MRT-10um-photonDist
+#PBS -r n
+#PBS -l nodes=1
+###PBS -l cput=999:00:00
+###PBS -l pvmem=1000MB
+###PBS -q single
+###PBS -o pbs.out
+#PBS -e pbs.err
+#PBS -V
+
+echo $PBS_O_WORKDIR
+cd $PBS_O_WORKDIR 
+
+echo Running on host `hostname`
+echo Time is `date`
+echo Directory is `pwd`
+echo This jobs runs on the following processors:
+echo `cat $PBS_NODEFILE`
+### Define number of processors
+NPROCS=`wc -l < $PBS_NODEFILE`
+echo This job has allocated $NPROCS cpus
+
+### execute program
+python3 scriptRun.py config2.config --filesize 2
